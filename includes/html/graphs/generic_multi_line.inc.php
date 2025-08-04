@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -17,9 +18,11 @@ require 'includes/html/graphs/common.inc.php';
 
 $stacked = generate_stacked_graphs();
 
-if (! isset($descr_len)) {
-    $descr_len = 12;
-}
+$descr_len ??= 12;
+$unitlen ??= 0;
+$units ??= '';
+$unit_text ??= '';
+$rrd_optionsb = '';
 
 if ($nototal) {
     $descr_len += '2';
@@ -31,15 +34,15 @@ $rrd_options .= " COMMENT:'" . \LibreNMS\Data\Store\Rrd::fixedSafeDescr($unit_te
 $i = 0;
 $iter = 0;
 
-foreach ($rrd_list as $rrd) {
+foreach ($rrd_list ?? [] as $rrd) {
     // get the color for this data set
     if (isset($rrd['colour'])) {
         $colour = $rrd['colour'];
     } else {
-        if (! \LibreNMS\Config::get("graph_colours.$colours.$iter")) {
+        if (! \App\Facades\LibrenmsConfig::get("graph_colours.$colours.$iter")) {
             $iter = 0;
         }
-        $colour = \LibreNMS\Config::get("graph_colours.$colours.$iter");
+        $colour = \App\Facades\LibrenmsConfig::get("graph_colours.$colours.$iter");
         $iter++;
     }
 
@@ -56,7 +59,7 @@ foreach ($rrd_list as $rrd) {
 
     $rrd_options .= ' DEF:' . $id . "=$filename:$ds:AVERAGE";
 
-    if ($simple_rrd) {
+    if (! empty($simple_rrd)) {
         $rrd_options .= ' CDEF:' . $id . 'min=' . $id . ' ';
         $rrd_options .= ' CDEF:' . $id . 'max=' . $id . ' ';
     } else {
@@ -64,7 +67,7 @@ foreach ($rrd_list as $rrd) {
         $rrd_options .= ' DEF:' . $id . "max=$filename:$ds:MAX";
     }
 
-    if ($rrd['invert']) {
+    if (! empty($rrd['invert'])) {
         $rrd_options .= ' CDEF:' . $id . 'i=' . $id . ',' . $stacked['stacked'] . ',*';
 
         $rrd_optionsb .= ' LINE1.25:' . $id . 'i#' . $colour . ":'$descr'";

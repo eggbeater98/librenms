@@ -1,4 +1,5 @@
 <?php
+
 /**
  * AlertRules.php
  *
@@ -31,16 +32,23 @@
 
 namespace LibreNMS\Alert;
 
+use App\Models\Eventlog;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use LibreNMS\Alerting\QueryBuilderParser;
 use LibreNMS\Enum\AlertState;
-use Log;
+use LibreNMS\Enum\MaintenanceStatus;
+use LibreNMS\Enum\Severity;
+use PDO;
+use PDOException;
 
 class AlertRules
 {
     public function runRules($device_id)
     {
         //Check to see if under maintenance
-        if (AlertUtil::isMaintenance($device_id) > 0) {
+        if (AlertUtil::getMaintenanceStatus($device_id) === MaintenanceStatus::SKIP_ALERTS) {
             echo "Under Maintenance, skipping alert rules check.\r\n";
 
             return false;
@@ -66,10 +74,22 @@ class AlertRules
             }
             d_echo(PHP_EOL);
             if (empty($rule['query'])) {
-                $rule['query'] = AlertDB::genSQL($rule['rule'], $rule['builder']);
+                $rule['query'] = QueryBuilderParser::fromJson($rule['builder'])->toSql();
             }
             $sql = $rule['query'];
-            $qry = dbFetchRows($sql, [$device_id]);
+
+            // set fetch assoc
+            try {
+                $query = DB::connection()->getPdo()->prepare($sql);
+                $query->execute([$device_id]);
+
+                $qry = $query->fetchAll(PDO::FETCH_ASSOC);
+            } catch (PDOException $e) {
+                c_echo('%RError: %n' . $e->getMessage() . PHP_EOL);
+                Eventlog::log("Error in alert rule {$rule['name']} ({$rule['id']}): " . $e->getMessage(), $device_id, 'alert', Severity::Error);
+                continue; // skip this rule
+            }
+
             $cnt = count($qry);
             for ($i = 0; $i < $cnt; $i++) {
                 if (isset($qry[$i]['ip'])) {
@@ -106,7 +126,7 @@ class AlertRules
                     $details = gzcompress(json_encode($details), 9);
                     dbUpdate(['details' => $details], 'alert_log', 'id = ?', [$alert_log['id']]);
                 } else {
-                    $extra = gzcompress(json_encode(['contacts' => AlertUtil::getContacts($qry), 'rule'=>$qry]), 9);
+                    $extra = gzcompress(json_encode(['contacts' => AlertUtil::getContacts($qry), 'rule' => $qry]), 9);
                     if (dbInsert(['state' => AlertState::ACTIVE, 'device_id' => $device_id, 'rule_id' => $rule['id'], 'details' => $extra], 'alert_log')) {
                         if (is_null($current_state)) {
                             dbInsert(['state' => AlertState::ACTIVE, 'device_id' => $device_id, 'rule_id' => $rule['id'], 'open' => 1, 'alerted' => 0], 'alerts');

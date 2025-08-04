@@ -1,4 +1,5 @@
 <?php
+
 /* Copyright (C) 2015 Daniel Preussker <f0o@librenms.org>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,7 +78,7 @@ class Playsms extends Transport
                     'title' => 'Token',
                     'name' => 'playsms-token',
                     'descr' => 'PlaySMS Token',
-                    'type' => 'text',
+                    'type' => 'password',
                 ],
                 [
                     'title' => 'From',
@@ -93,9 +94,9 @@ class Playsms extends Transport
                 ],
             ],
             'validation' => [
-                'playsms-url'     => 'required|url',
-                'playsms-user'    => 'required|string',
-                'playsms-token'   => 'required|string',
+                'playsms-url' => 'required|url',
+                'playsms-user' => 'required|string',
+                'playsms-token' => 'required|string',
                 'playsms-mobiles' => 'required',
             ],
         ];

@@ -9,22 +9,24 @@
                     "app_state_prev": null,
                     "app_status": "",
                     "app_instance": "",
-                    "data": null
+                    "data": null,
+                    "deleted_at": null
                 }
             ]
         },
         "poller": {
-            "applications": {
-                "0": {
+            "applications": [
+                {
                     "app_type": "linux_softnet_stat",
                     "app_state": "OK",
                     "discovered": "1",
                     "app_state_prev": "UNKNOWN",
                     "app_status": "",
                     "app_instance": "",
-                    "data": "{\"budget\":\"300\",\"budget_usecs\":\"8000\"}"
+                    "data": "{\"budget\":\"300\",\"budget_usecs\":\"8000\"}",
+                    "deleted_at": null
                 }
-            },
+            ],
             "application_metrics": [
                 {
                     "metric": "backlog_length",

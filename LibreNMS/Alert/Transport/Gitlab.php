@@ -1,4 +1,5 @@
 <?php
+
 /* Copyright (C) 2018 Drew Hynes <drew.hynes@gmail.com>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,13 +73,13 @@ class Gitlab extends Transport
                     'title' => 'Project ID',
                     'name' => 'gitlab-id',
                     'descr' => 'GitLab Project ID',
-                    'type'=> 'text',
+                    'type' => 'text',
                 ],
                 [
                     'title' => 'Personal Access Token',
                     'name' => 'gitlab-key',
                     'descr' => 'Personal Access Token',
-                    'type' => 'text',
+                    'type' => 'password',
                 ],
             ],
             'validation' => [

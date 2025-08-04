@@ -1,4 +1,5 @@
 <?php
+
 /* Copyright (C) 2015 Daniel Preussker <f0o@librenms.org>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,19 +54,19 @@ class Clickatell extends Transport
             'config' => [
                 [
                     'title' => 'Token',
-                    'name'  => 'clickatell-token',
+                    'name' => 'clickatell-token',
                     'descr' => 'Clickatell Token',
-                    'type'  => 'text',
+                    'type' => 'password',
                 ],
                 [
                     'title' => 'Mobile Numbers',
-                    'name'  => 'clickatell-numbers',
+                    'name' => 'clickatell-numbers',
                     'descr' => 'Enter mobile numbers, can be new line or comma separated',
-                    'type'  => 'textarea',
+                    'type' => 'textarea',
                 ],
             ],
             'validation' => [
-                'clickatell-token'   => 'required|string',
+                'clickatell-token' => 'required|string',
                 'clickatell-numbers' => 'required|string',
             ],
         ];

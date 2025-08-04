@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -15,7 +16,8 @@
 
 $common_output[] = '
 <div class="table-responsive">
-    <table id="outages" class="table table-hover table-condensed table-striped">
+    <table id="outages" class="table table-hover table-condensed table-striped"
+        data-url="' . route('table.outages') . '">
         <thead>
             <tr>
                 <th data-column-id="status" data-sortable="false"></th>
@@ -39,11 +41,10 @@ var outages_grid = $("#outages").bootgrid({
     {
         return {
             device: ' . (empty($vars['device']) ? 'null' : (int) $vars['device']) . ',
-            to: "' . addcslashes($vars['to'], '"') . '",
-            from: "' . addcslashes($vars['from'], '"') . '",
+            to: "' . htmlspecialchars($vars['to']) . '",
+            from: "' . htmlspecialchars($vars['from']) . '",
         };
     },
-    url: "' . url('/ajax/table/outages') . '"
 });
 
 </script>

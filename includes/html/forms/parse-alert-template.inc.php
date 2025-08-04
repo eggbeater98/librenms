@@ -22,26 +22,26 @@ $template_edit = is_numeric($template_id) && $template_id > 0;
 
 $rules = [];
 $output = [
-    'template'  => '',
-    'name'      => '',
-    'title'     => '',
+    'template' => '',
+    'name' => '',
+    'title' => '',
     'title_rec' => '',
-    'type'      => '',
-    'rules'     => $rules,
+    'type' => '',
+    'rules' => $rules,
 ];
 
 if ($template_edit) {
     $template = dbFetchRow('SELECT * FROM `alert_templates` WHERE `id` = ? LIMIT 1', [$template_id]);
     $output = [
-        'template'  => $template['template'],
-        'name'      => $template['name'],
-        'title'     => $template['title'],
+        'template' => $template['template'],
+        'name' => $template['name'],
+        'title' => $template['title'],
         'title_rec' => $template['title_rec'],
-        'type'      => $template['type'],
+        'type' => $template['type'],
     ];
 }
 
-foreach (dbFetchRows('SELECT `id`,`rule`,`name` FROM `alert_rules` order by `name`', []) as $rule) {
+foreach (dbFetchRows('SELECT `id`,`name` FROM `alert_rules` order by `name`', []) as $rule) {
     $is_selected = $template_edit ? dbFetchCell('SELECT `alert_templates_id` FROM `alert_template_map` WHERE `alert_rule_id` = ? AND `alert_templates_id` = ?', [$rule['id'], $template_id]) : null;
     $is_available = dbFetchCell('SELECT `alert_templates_id` FROM `alert_template_map` WHERE `alert_rule_id` = ?', [$rule['id']]);
     $rules[] = [

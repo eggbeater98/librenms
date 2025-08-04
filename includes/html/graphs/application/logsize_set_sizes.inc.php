@@ -18,14 +18,10 @@ foreach ($log_sets as $index => $log_set) {
         $rrd_filename = Rrd::name($device['hostname'], ['app', $name, $app['app_id'], $log_set]);
         $rrd_list[] = [
             'filename' => $rrd_filename,
-            'descr'    => $log_set,
-            'ds'       => 'size',
+            'descr' => $log_set,
+            'ds' => 'size',
         ];
     }
-}
-
-if (sizeof($rrd_list)) {
-    d_echo('No relevant log set RRDs found');
 }
 
 require 'includes/html/graphs/generic_multi_line.inc.php';

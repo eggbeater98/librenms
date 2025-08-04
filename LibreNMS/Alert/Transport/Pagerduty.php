@@ -1,4 +1,5 @@
 <?php
+
 /* Copyright (C) 2015 Daniel Preussker <f0o@devilcode.org>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,17 +42,19 @@ class Pagerduty extends Transport
         };
 
         $safe_message = strip_tags($alert_data['msg']) ?: 'Test';
-        $message = array_filter(explode("\n", $safe_message), 'strlen');
+        $message = array_filter(explode("\n", $safe_message), function ($value): bool {
+            return strlen($value) > 0;
+        });
         $data = [
-            'routing_key'  => $this->config['service_key'],
+            'routing_key' => $this->config['service_key'],
             'event_action' => $event_action,
-            'dedup_key'    => (string) $alert_data['alert_id'],
-            'payload'    => [
-                'custom_details'  => ['message' => $message],
-                'group'   => (string) \DeviceCache::get($alert_data['device_id'])->groups->pluck('name'),
-                'source'   => $alert_data['hostname'],
+            'dedup_key' => (string) $alert_data['alert_id'],
+            'payload' => [
+                'custom_details' => ['message' => $message],
+                'group' => (string) \DeviceCache::get($alert_data['device_id'])->groups->pluck('name'),
+                'source' => $alert_data['hostname'],
                 'severity' => $alert_data['severity'],
-                'summary'  => ($alert_data['name'] ? $alert_data['name'] . ' on ' . $alert_data['hostname'] : $alert_data['title']),
+                'summary' => ($alert_data['name'] ? $alert_data['name'] . ' on ' . $alert_data['hostname'] : $alert_data['title']),
             ],
         ];
 
@@ -88,8 +91,8 @@ class Pagerduty extends Transport
                 ],
                 [
                     'title' => 'Routing Key',
-                    'type'  => 'text',
-                    'name'  => 'service_key',
+                    'type' => 'text',
+                    'name' => 'service_key',
                 ],
                 [
                     'title' => 'Custom API URL',

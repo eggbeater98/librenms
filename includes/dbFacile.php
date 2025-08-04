@@ -20,7 +20,9 @@
  * @see https://laravel.com/docs/eloquent
  */
 
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Event;
 use LibreNMS\DB\Eloquent;
 use LibreNMS\Util\Laravel;
 
@@ -246,43 +248,24 @@ function dbDeleteOrphans($target_table, $parents)
  */
 function dbFetchRows($sql, $parameters = [])
 {
-    global $PDO_FETCH_ASSOC;
-
     try {
-        $PDO_FETCH_ASSOC = true;
-        $rows = Eloquent::DB()->select($sql, (array) $parameters);
+        $startTime = microtime(true);
+        $connection = DB::connection();
 
-        return $rows;
+        $query = $connection->getPdo()->prepare($sql);
+        $query->execute((array) $parameters);
+        $all = $query->fetchAll(PDO::FETCH_ASSOC);
+
+        $executionTime = round((microtime(true) - $startTime) * 1000, 2);
+        Event::dispatch(new QueryExecuted($sql, $parameters, $executionTime, $connection));
+
+        return $all;
     } catch (PDOException $pdoe) {
         dbHandleException(new QueryException('dbFacile', $sql, $parameters, $pdoe));
-    } finally {
-        $PDO_FETCH_ASSOC = false;
     }
 
     return [];
 }//end dbFetchRows()
-
-/**
- * This is intended to be the method used for large result sets.
- * It is intended to return an iterator, and act upon buffered data.
- *
- * @deprecated Please use Eloquent instead; https://laravel.com/docs/eloquent
- * @see https://laravel.com/docs/eloquent
- */
-function dbFetch($sql, $parameters = [])
-{
-    return dbFetchRows($sql, $parameters);
-    /*
-        // for now, don't do the iterator thing
-        $result = dbQuery($sql, $parameters);
-        if($result) {
-        // return new iterator
-        return new dbIterator($result);
-        } else {
-        return null; // ??
-        }
-     */
-}//end dbFetch()
 
 /**
  * Like fetch(), accepts any number of arguments
@@ -291,19 +274,22 @@ function dbFetch($sql, $parameters = [])
  * @deprecated Please use Eloquent instead; https://laravel.com/docs/eloquent
  * @see https://laravel.com/docs/eloquent
  */
-function dbFetchRow($sql = null, $parameters = [])
+function dbFetchRow($sql = null, $parameters = []): ?array
 {
-    global $PDO_FETCH_ASSOC;
-
     try {
-        $PDO_FETCH_ASSOC = true;
-        $row = Eloquent::DB()->selectOne($sql, (array) $parameters);
+        $startTime = microtime(true);
+        $connection = DB::connection();
 
-        return $row;
+        $query = $connection->getPdo()->prepare($sql);
+        $query->execute((array) $parameters);
+        $row = $query->fetch(PDO::FETCH_ASSOC);
+
+        $executionTime = round((microtime(true) - $startTime) * 1000, 2);
+        Event::dispatch(new QueryExecuted($sql, $parameters, $executionTime, $connection));
+
+        return $row === false ? null : $row;
     } catch (PDOException $pdoe) {
         dbHandleException(new QueryException('dbFacile', $sql, $parameters, $pdoe));
-    } finally {
-        $PDO_FETCH_ASSOC = false;
     }
 
     return [];
@@ -317,19 +303,20 @@ function dbFetchRow($sql = null, $parameters = [])
  */
 function dbFetchCell($sql, $parameters = [])
 {
-    global $PDO_FETCH_ASSOC;
-
     try {
-        $PDO_FETCH_ASSOC = true;
-        $row = Eloquent::DB()->selectOne($sql, (array) $parameters);
-        if ($row) {
-            return reset($row);
-            // shift first field off first row
-        }
+        $startTime = microtime(true);
+        $connection = DB::connection();
+
+        $query = $connection->getPdo()->prepare($sql);
+        $query->execute((array) $parameters);
+        $value = $query->fetchColumn();
+
+        $executionTime = round((microtime(true) - $startTime) * 1000, 2);
+        Event::dispatch(new QueryExecuted($sql, $parameters, $executionTime, $connection));
+
+        return $value === false ? null : $value;
     } catch (PDOException $pdoe) {
         dbHandleException(new QueryException('dbFacile', $sql, $parameters, $pdoe));
-    } finally {
-        $PDO_FETCH_ASSOC = false;
     }
 
     return null;
@@ -344,73 +331,24 @@ function dbFetchCell($sql, $parameters = [])
  */
 function dbFetchColumn($sql, $parameters = [])
 {
-    global $PDO_FETCH_ASSOC;
-
-    $cells = [];
-
     try {
-        $PDO_FETCH_ASSOC = true;
-        foreach (Eloquent::DB()->select($sql, (array) $parameters) as $row) {
-            $cells[] = reset($row);
-        }
-        $PDO_FETCH_ASSOC = false;
+        $startTime = microtime(true);
+        $connection = DB::connection();
 
-        return $cells;
+        $query = $connection->getPdo()->prepare($sql);
+        $query->execute((array) $parameters);
+        $column = $query->fetchAll(PDO::FETCH_COLUMN, 0);
+
+        $executionTime = round((microtime(true) - $startTime) * 1000, 2);
+        Event::dispatch(new QueryExecuted($sql, $parameters, $executionTime, $connection));
+
+        return $column;
     } catch (PDOException $pdoe) {
         dbHandleException(new QueryException('dbFacile', $sql, $parameters, $pdoe));
-    } finally {
-        $PDO_FETCH_ASSOC = false;
     }
 
     return [];
 }//end dbFetchColumn()
-
-/**
- * Should be passed a query that fetches two fields
- * The first will become the array key
- * The second the key's value
- *
- * @deprecated Please use Eloquent instead; https://laravel.com/docs/eloquent
- * @see https://laravel.com/docs/eloquent
- */
-function dbFetchKeyValue($sql, $parameters = [])
-{
-    $data = [];
-    foreach (dbFetch($sql, $parameters) as $row) {
-        $key = array_shift($row);
-        if (sizeof($row) == 1) {
-            // if there were only 2 fields in the result
-            // use the second for the value
-            $data[$key] = array_shift($row);
-        } else {
-            // if more than 2 fields were fetched
-            // use the array of the rest as the value
-            $data[$key] = $row;
-        }
-    }
-
-    return $data;
-}//end dbFetchKeyValue()
-
-/**
- * Legacy dbFacile indicates DB::raw() as a value wrapped in an array
- *
- * @param  array  $data
- * @return array
- *
- * @deprecated Please use Eloquent instead; https://laravel.com/docs/eloquent
- * @see https://laravel.com/docs/eloquent
- */
-function dbArrayToRaw($data)
-{
-    array_walk($data, function (&$item) {
-        if (is_array($item)) {
-            $item = Eloquent::DB()->raw(reset($item));
-        }
-    });
-
-    return $data;
-}
 
 /**
  * @deprecated Please use Eloquent instead; https://laravel.com/docs/eloquent
@@ -473,33 +411,6 @@ function dbPlaceHolders(&$values)
 }//end dbPlaceHolders()
 
 /**
- * @deprecated Please use Eloquent instead; https://laravel.com/docs/eloquent
- * @see https://laravel.com/docs/eloquent
- */
-function dbBeginTransaction()
-{
-    Eloquent::DB()->beginTransaction();
-}//end dbBeginTransaction()
-
-/**
- * @deprecated Please use Eloquent instead; https://laravel.com/docs/eloquent
- * @see https://laravel.com/docs/eloquent
- */
-function dbCommitTransaction()
-{
-    Eloquent::DB()->commit();
-}//end dbCommitTransaction()
-
-/**
- * @deprecated Please use Eloquent instead; https://laravel.com/docs/eloquent
- * @see https://laravel.com/docs/eloquent
- */
-function dbRollbackTransaction()
-{
-    Eloquent::DB()->rollBack();
-}//end dbRollbackTransaction()
-
-/**
  * Generate a string of placeholders to pass to fill in a list
  * result will look like this: (?, ?, ?, ?)
  *
@@ -548,31 +459,4 @@ function dbSyncRelationship($table, $target_column = null, $target = null, $list
     }
 
     return [$inserted, $deleted];
-}
-
-/**
- * Synchronize a relationship to a list of relations
- *
- * @param  string  $table
- * @param  array  $relationships  array of relationship pairs with columns as keys and ids as values
- * @return array [$inserted, $deleted]
- *
- * @deprecated Please use Eloquent instead; https://laravel.com/docs/eloquent
- * @see https://laravel.com/docs/eloquent
- */
-function dbSyncRelationships($table, $relationships = [])
-{
-    $changed = [[0, 0]];
-    [$target_column, $list_column] = array_keys(reset($relationships));
-
-    $grouped = [];
-    foreach ($relationships as $relationship) {
-        $grouped[$relationship[$target_column]][] = $relationship[$list_column];
-    }
-
-    foreach ($grouped as $target => $list) {
-        $changed[] = dbSyncRelationship($table, $target_column, $target, $list_column, $list);
-    }
-
-    return [array_sum(array_column($changed, 0)), array_sum(array_column($changed, 1))];
 }

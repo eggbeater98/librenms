@@ -32,6 +32,7 @@ if (! empty($_POST['editing'])) {
         $device_model->purpose = $_POST['descr'];
         $device_model->poller_group = $_POST['poller_group'];
         $device_model->ignore = (int) isset($_POST['ignore']);
+        $device_model->ignore_status = (int) isset($_POST['ignore_status']);
         $device_model->disabled = (int) isset($_POST['disabled']);
         $device_model->disable_notify = (int) isset($_POST['disable_notify']);
         $device_model->type = $_POST['type'];
@@ -47,9 +48,9 @@ if (! empty($_POST['editing'])) {
 
         if ($device_model->isDirty()) {
             if ($device_model->save()) {
-                flash()->addSuccess(__('Device record updated'));
+                toast()->success(__('Device record updated'));
             } else {
-                flash()->addError(__('Device record update error'));
+                toast()->error(__('Device record update error'));
             }
         }
 
@@ -57,13 +58,13 @@ if (! empty($_POST['editing'])) {
             if (Auth::user()->hasGlobalAdmin()) {
                 $result = renamehost($device['device_id'], trim($_POST['hostname']), 'webui');
                 if ($result == '') {
-                    flash()->addSuccess("Hostname updated from {$device['hostname']} to {$_POST['hostname']}");
+                    toast()->success("Hostname updated from {$device['hostname']} to {$_POST['hostname']}");
                     $reload = true;
                 } else {
-                    flash()->addError($result . '.  Does your web server have permission to modify the rrd files?');
+                    toast()->error($result . '.  Does your web server have permission to modify the rrd files?');
                 }
             } else {
-                flash()->addError('Only administrative users may update the device hostname');
+                toast()->error('Only administrative users may update the device hostname');
             }
         }
 
@@ -108,7 +109,7 @@ $disable_notify = get_dev_attrib($device, 'disable_notify');
     </div>
     <div class="col-md-2 text-center">
         <?php
-        if (\LibreNMS\Config::get('enable_clear_discovery') == 1 && ! $device['snmp_disable']) {
+        if (\App\Facades\LibrenmsConfig::get('enable_clear_discovery') == 1 && ! $device['snmp_disable']) {
             ?>
             <button type="submit" id="rediscover" data-device_id="<?php echo $device['device_id']; ?>" class="btn btn-primary" name="rediscover" title="Schedule the device for immediate rediscovery by the poller"><i class="fa fa-retweet"></i> Rediscover device</button>
             <?php
@@ -157,7 +158,7 @@ $disable_notify = get_dev_attrib($device, 'disable_notify');
                 <?php
                 $unknown = 1;
 
-                foreach (\LibreNMS\Config::get('device_types') as $type) {
+                foreach (\App\Facades\LibrenmsConfig::get('device_types') as $type) {
                     echo '          <option value="' . $type['type'] . '"';
                     if ($device_model->type == $type['type']) {
                         echo ' selected="1"';
@@ -252,18 +253,18 @@ $disable_notify = get_dev_attrib($device, 'disable_notify');
         </div>
     </div>
 <?php
-if (\LibreNMS\Config::get('distributed_poller') === true) {
+if (\App\Facades\LibrenmsConfig::get('distributed_poller') === true) {
                     ?>
    <div class="form-group">
        <label for="poller_group" class="col-sm-2 control-label">Poller Group</label>
        <div class="col-sm-6">
            <select name="poller_group" id="poller_group" class="form-control input-sm">
-           <option value="0">General<?=\LibreNMS\Config::get('distributed_poller_group') == 0 ? ' (default Poller)' : ''?></option>
+           <option value="0">General<?=\App\Facades\LibrenmsConfig::get('distributed_poller_group') == 0 ? ' (default Poller)' : ''?></option>
     <?php
     foreach (dbFetchRows('SELECT `id`,`group_name` FROM `poller_groups` ORDER BY `group_name`') as $group) {
         echo '<option value="' . $group['id'] . '"' .
-        ($device_model->poller_group == $group['id'] ? ' selected' : '') . '>' . $group['group_name'];
-        echo \LibreNMS\Config::get('distributed_poller_group') == $group['id'] ? ' (default Poller)' : '';
+        ($device_model->poller_group == $group['id'] ? ' selected' : '') . '>' . htmlentities($group['group_name']);
+        echo \App\Facades\LibrenmsConfig::get('distributed_poller_group') == $group['id'] ? ' (default Poller)' : '';
         echo '</option>';
     } ?>
            </select>
@@ -286,7 +287,19 @@ if (\LibreNMS\Config::get('distributed_poller') === true) {
     <div class="form-group">
       <label for="maintenance" class="col-sm-2 control-label"></label>
       <div class="col-sm-6">
-      <button type="button" id="maintenance" data-device_id="<?php echo $device['device_id']; ?>" <?php echo \LibreNMS\Alert\AlertUtil::isMaintenance($device['device_id']) ? 'disabled class="btn btn-warning"' : 'class="btn btn-success"'?> name="maintenance"><i class="fa fa-wrench"></i> Maintenance Mode</button>
+        <button type="button"
+                id="maintenance"
+                data-device_id="<?php echo $device['device_id']; ?>"
+                <?= DeviceCache::get($device['device_id'])->isUnderMaintenance()
+                  ? 'disabled class="btn btn-warning"'
+                  : 'class="btn btn-success"'
+                ?>
+                name="maintenance">
+          <?= DeviceCache::get($device['device_id'])->isUnderMaintenance()
+            ? '<i class="fa fa-wrench"></i> Device already in Maintenance'
+            : '<i class="fa fa-wrench"></i> Maintenance Mode';
+          ?>
+        </button>
       </div>
     </div>
 
@@ -309,6 +322,17 @@ If `devices.ignore = 0` or `macros.device = 1` condition is is set and ignore al
            <input name="ignore" type="checkbox" id="ignore" value="1" data-size="small"
                 <?php
                 if ($device_model->ignore) {
+                    echo 'checked=checked';
+                }
+                ?> />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="ignore_status" class="col-sm-2 control-label" title="Tag device to ignore Status. It will always be shown as online.">Ignore Device Status</label>
+        <div class="col-sm-6">
+           <input name="ignore_status" type="checkbox" id="ignore_status" value="1" data-size="small"
+                <?php
+                if ($device_model->ignore_status) {
                     echo 'checked=checked';
                 }
                 ?> />
@@ -375,7 +399,7 @@ If `devices.ignore = 0` or `macros.device = 1` condition is is set and ignore al
 <?php
 print_optionbar_start();
 [$sizeondisk, $numrrds] = foldersize(Rrd::dirFromHost($device['hostname']));
-echo 'Size on Disk: <b>' . \LibreNMS\Util\Number::formatBi($sizeondisk, 2, 3) . '</b> in <b>' . $numrrds . ' RRD files</b>.';
+echo 'Size on Disk: <b>' . \LibreNMS\Util\Number::formatBi($sizeondisk, 2, 0) . '</b> in <b>' . $numrrds . ' RRD files</b>.';
 echo ' | Last polled: <b>' . $device['last_polled'] . '</b>';
 if ($device['last_discovered']) {
     echo ' | Last discovered: <b>' . $device['last_discovered'] . '</b>';

@@ -52,13 +52,13 @@ return [
             'distributed' => ['name' => '分散式輪詢器'],
             'graphite' => ['name' => '資料存放區: Graphite'],
             'influxdb' => ['name' => '資料存放區: InfluxDB'],
+            'kafka' => ['name' => '資料存放區: Kafka'],
             'opentsdb' => ['name' => '資料存放區: OpenTSDB'],
             'ping' => ['name' => 'Ping'],
             'prometheus' => ['name' => '資料存放區: Prometheus'],
             'rrdtool' => ['name' => 'RRDTool 設定'],
             'snmp' => ['name' => 'SNMP'],
             'poller_modules' => ['name' => '輪詢器模組'],
-            'interface_types' => ['name' => 'RFC 7224 介面類型'],
         ],
         'system' => [
             'cleanup' => ['name' => '清理'],
@@ -192,9 +192,6 @@ return [
         'allow_unauth_graphs_cidr' => [
             'description' => '允許指定網路存取圖表',
             'help' => '允許指定網路可以在未登入授權查看圖表 (若未啟用 允許未登入存取圖表 則忽略此設定)',
-        ],
-        'api_demo' => [
-            'description' => '這是展示',
         ],
         'apps' => [
             'powerdns-recursor' => [
@@ -378,10 +375,6 @@ return [
         'base_url' => [
             'description' => '指定 URL',
             'help' => 'This should *only* be set if you want to *force* a particular hostname/port. It will prevent the web interface being usable form any other hostname',
-        ],
-        'device_perf_purge' => [
-            'description' => '裝置效能項目大於',
-            'help' => 'Cleanup done by daily.sh',
         ],
         'distributed_poller' => [
             'description' => '啟用分散式輪詢 (需要額外設定)',
@@ -647,7 +640,7 @@ return [
         'nfsen_top_default' => [
             'description' => 'Default Top N',
         ],
-        'nfsen_stat_default' => [
+        'nfsen_stats_default' => [
             'description' => 'Default Stat',
         ],
         'nfsen_order_default' => [
@@ -729,7 +722,7 @@ return [
             'help' => 'Cleanup done by daily.sh',
         ],
         'ports_purge' => [
-            'description' => '清除端口已刪除',
+            'description' => '清除已刪除的連接埠',
             'help' => 'Cleanup done by daily.sh',
         ],
         'prometheus' => [

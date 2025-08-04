@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'config:clear' => [
+        'description' => 'Clear config cache.  This will allow any changes that have been made since the last full config load to be reflected in the current config.',
+    ],
     'config:get' => [
         'description' => 'Get configuration value',
         'arguments' => [
@@ -63,6 +66,7 @@ return [
         'exit' => 'Ctrl-C to stop',
         'removed' => 'Device :id removed',
         'updated' => 'Device :hostname (:id) updated',
+        'setup' => 'Setting up snmpsim venv in :dir',
     ],
     'device:add' => [
         'description' => 'Add a new device',
@@ -120,9 +124,13 @@ return [
             'db_connect' => 'Failed to connect to database. Verify database service is running and connection settings.',
             'db_auth' => 'Failed to connect to database. Verify credentials: :error',
             'no_devices' => 'No devices found matching your given device specification.',
+            'none_up' => 'Device was down, unable to poll.|All devices were down, unable to poll.',
             'none_polled' => 'No devices were polled.',
         ],
         'polled' => 'Polled :count devices in :time',
+    ],
+    'device:remove' => [
+        'doesnt_exists' => 'No such device: :device',
     ],
     'key:rotate' => [
         'description' => 'Rotate APP_KEY, this decrypts all encrypted data with the given old key and stores it with the new key in APP_KEY.',
@@ -157,6 +165,24 @@ return [
             'optionValue' => 'Selected :option is invalid. Should be one of: :values',
         ],
     ],
+    'maintenance:fetch-ouis' => [
+        'description' => 'Fetch MAC OUIs and cache them to display vendor names for MAC addresses',
+        'options' => [
+            'force' => 'Ignore any settings or locks that prevent the command from being run',
+            'wait' => 'Wait a random amount of time, used by the scedueler to prevent server strain',
+        ],
+        'disabled' => 'Mac OUI integration disabled (:setting)',
+        'enable_question' => 'Enable Mac OUI integration and scheduled fetching?',
+        'recently_fetched' => 'MAC OUI Database fetched recently, skipping update.',
+        'waiting' => 'Waiting :minutes minute before attempting MAC OUI update|Waiting :minutes minutes before attempting MAC OUI update',
+        'starting' => 'Storing Mac OUI in the database',
+        'downloading' => 'Downloading',
+        'processing' => 'Processing CSV',
+        'saving' => 'Saving results',
+        'success' => 'Successfully updated OUI/Vendor mappings. :count modified OUI|Successfully updated. :count modified OUIs',
+        'error' => 'Error processing Mac OUI:',
+        'vendor_update' => 'Adding OUI :oui for :vendor',
+    ],
     'plugin:disable' => [
         'description' => 'Disable all plugins with the given name',
         'arguments' => [
@@ -174,6 +200,34 @@ return [
         'already_enabled' => 'Plugin already enabled',
         'enabled' => ':count plugin enabled|:count plugins enabled',
         'failed' => 'Failed to enable plugin(s)',
+    ],
+    'port:tune' => [
+        'description' => 'Tune port rrd files to limit the max transfer rate based on ifSpeed',
+        'arguments' => [
+            'device spec' => 'Device spec to tune: device_id, hostname, wildcard (*), odd, even, all',
+            'ifname' => 'Port ifName to match can use all or * for a wildcard',
+        ],
+        'device' => 'Device :device:',
+        'port' => 'Tuning port :port',
+    ],
+    'report:devices' => [
+        'description' => 'Print out data from devices',
+        'columns' => 'Database columns:',
+        'synthetic' => 'Additional fields:',
+        'counts' => 'Relationship counts:',
+        'arguments' => [
+            'device spec' => 'Device spec to poll: device_id, hostname, wildcard (*), odd, even, all',
+        ],
+        'options' => [
+            'list-fields' => 'Print out a list of valid fields',
+            'fields' => 'A comma seperated list of fields to display. Valid options: device column names from the database, relationship counts (ports_count), and/or displayName. Not used for json output.',
+            'output' => 'Output format to display the data :types',
+            'no-header' => 'Do not add the header',
+            'relationships' => 'A comma seperated list of relationships to include. Only used for json output.',
+            'list-relationships' => 'Print out a list/description of relationships',
+            'all-relationships' => 'Include all relationships. -r, --relationships takes presidence.',
+            'devices-as-array' => 'Return the output as a JSON array instead of a JSON entry per device per line',
+        ],
     ],
     'smokeping:generate' => [
         'args-nonsense' => 'Use one of --probes and --targets',
@@ -197,10 +251,11 @@ return [
     'snmp:fetch' => [
         'description' => 'Run snmp query against a device',
         'arguments' => [
-            'device spec' => 'Device to query: device_id, hostname/ip, hostname regex, or all',
+            'device spec' => 'Device spec to poll: device_id, hostname, wildcard (*), odd, even, all',
             'oid(s)' => 'One or more SNMP OID to fetch.  Should be either MIB::oid or a numeric oid',
         ],
         'failed' => 'SNMP command failed!',
+        'numeric' => 'Numeric',
         'oid' => 'OID',
         'options' => [
             'output' => 'Specify the output format :formats',
@@ -208,6 +263,7 @@ return [
             'depth' => 'Depth to group the snmp table at. Usually the same number as the items in the index of the table',
         ],
         'not_found' => 'Device not found',
+        'textual' => 'Textual',
         'value' => 'Value',
     ],
     'translation:generate' => [
@@ -228,5 +284,8 @@ return [
         'password-request' => "Please enter the user's password",
         'success' => 'Successfully added user: :username',
         'wrong-auth' => 'Warning! You will not be able to log in with this user because you are not using MySQL auth',
+    ],
+    'maintenance:database-cleanup' => [
+        'description' => 'Database cleanup of orphaned items.',
     ],
 ];

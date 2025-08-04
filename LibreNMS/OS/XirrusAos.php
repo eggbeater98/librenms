@@ -1,4 +1,5 @@
 <?php
+
 /**
  * XirrusAos.php
  *
@@ -26,6 +27,7 @@
 namespace LibreNMS\OS;
 
 use LibreNMS\Device\WirelessSensor;
+use LibreNMS\Interfaces\Data\DataStorageInterface;
 use LibreNMS\Interfaces\Discovery\Sensors\WirelessClientsDiscovery;
 use LibreNMS\Interfaces\Discovery\Sensors\WirelessFrequencyDiscovery;
 use LibreNMS\Interfaces\Discovery\Sensors\WirelessNoiseFloorDiscovery;
@@ -49,14 +51,14 @@ class XirrusAos extends OS implements
     WirelessRssiDiscovery,
     WirelessSnrDiscovery
 {
-    public function pollOS(): void
+    public function pollOS(DataStorageInterface $datastore): void
     {
         $associations = [];
 
         // if this config flag is true, don't poll for stations
         // this in case of large APs which may have many stations
         // to prevent causing long polling times
-        if (\LibreNMS\Config::get('xirrus_disable_stations') != true) {
+        if (\App\Facades\LibrenmsConfig::get('xirrus_disable_stations') != true) {
             // station associations
             // custom RRDs and graph as each AP may have 16 radios
             $assoc = snmpwalk_cache_oid($this->getDeviceArray(), 'XIRRUS-MIB::stationAssociationIAP', [], 'XIRRUS-MIB');
@@ -74,8 +76,8 @@ class XirrusAos extends OS implements
                 $fields = [
                     'stations' => $count,
                 ];
-                $tags = compact('radio', 'rrd_name', 'rrd_def');
-                data_update($this->getDeviceArray(), $measurement, $tags, $fields);
+                $tags = ['radio' => $radio, 'rrd_name' => $rrd_name, 'rrd_def' => $rrd_def];
+                $datastore->put($this->getDeviceArray(), $measurement, $tags, $fields);
             }
             $this->enableGraph('xirrus_stations');
         }

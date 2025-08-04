@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Messagebirdvoice.php
  *
@@ -72,7 +73,7 @@ class Messagebirdvoice extends Transport
                     'title' => 'Messagebird API key',
                     'name' => 'messagebird-key',
                     'descr' => 'Messagebird API REST key',
-                    'type' => 'text',
+                    'type' => 'password',
                 ],
                 [
                     'title' => 'Messagebird originator',

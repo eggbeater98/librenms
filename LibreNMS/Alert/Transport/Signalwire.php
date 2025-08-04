@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -66,7 +67,7 @@ class Signalwire extends Transport
                     'title' => 'Token',
                     'name' => 'signalwire-token',
                     'descr' => 'SignalWire Account Token ',
-                    'type' => 'text',
+                    'type' => 'password',
                 ],
                 [
                     'title' => 'Mobile Number',

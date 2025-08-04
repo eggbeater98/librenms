@@ -1,9 +1,12 @@
 <?php
 
-use LibreNMS\Config;
+use App\Facades\LibrenmsConfig;
 
 function rewrite_entity_descr($descr)
 {
+    if (is_null($descr)) {
+        return '';
+    }
     $descr = str_replace('Distributed Forwarding Card', 'DFC', $descr);
     $descr = preg_replace('/7600 Series SPA Interface Processor-/', '7600 SIP-', $descr);
     $descr = preg_replace('/Rev\.\ [0-9\.]+\ /', '', $descr);
@@ -50,37 +53,37 @@ function cleanPort($interface, $device = null)
         $device = device_by_id_cache($interface['device_id']);
     }
 
-    $os = strtolower($device['os']);
+    // set "label"
+    $interface['label'] = $interface['ifDescr'];
+    if (isset($device['os'])) {
+        $os = strtolower($device['os']);
+        if (LibrenmsConfig::get("os.$os.ifname")) {
+            $interface['label'] = $interface['ifName'];
 
-    if (Config::get("os.$os.ifname")) {
-        $interface['label'] = $interface['ifName'];
-
-        if ($interface['ifName'] == '') {
-            $interface['label'] = $interface['ifDescr'];
-        }
-    } elseif (Config::get("os.$os.ifalias")) {
-        $interface['label'] = $interface['ifAlias'];
-    } else {
-        $interface['label'] = $interface['ifDescr'];
-        if (Config::get("os.$os.ifindex")) {
+            if ($interface['ifName'] == '') {
+                $interface['label'] = $interface['ifDescr'];
+            }
+        } elseif (LibrenmsConfig::get("os.$os.ifalias")) {
+            $interface['label'] = $interface['ifAlias'];
+        } elseif (LibrenmsConfig::get("os.$os.ifindex")) {
             $interface['label'] = $interface['label'] . ' ' . $interface['ifIndex'];
         }
+
+        if ($os == 'speedtouch') {
+            [$interface['label']] = explode('thomson', $interface['label']);
+        }
     }
 
-    if ($device['os'] == 'speedtouch') {
-        [$interface['label']] = explode('thomson', $interface['label']);
-    }
-
-    if (is_array(Config::get('rewrite_if'))) {
-        foreach (Config::get('rewrite_if') as $src => $val) {
+    if (is_array(LibrenmsConfig::get('rewrite_if'))) {
+        foreach (LibrenmsConfig::get('rewrite_if') as $src => $val) {
             if (stristr($interface['label'], $src)) {
                 $interface['label'] = $val;
             }
         }
     }
 
-    if (is_array(Config::get('rewrite_if_regexp'))) {
-        foreach (Config::get('rewrite_if_regexp') as $reg => $val) {
+    if (is_array(LibrenmsConfig::get('rewrite_if_regexp'))) {
+        foreach (LibrenmsConfig::get('rewrite_if_regexp') as $reg => $val) {
             if (preg_match($reg . 'i', $interface['label'])) {
                 $interface['label'] = preg_replace($reg . 'i', $val, $interface['label']);
             }
@@ -90,44 +93,12 @@ function cleanPort($interface, $device = null)
     return $interface;
 }
 
-// Specific rewrite functions
-
-function makeshortif($if)
-{
-    $rewrite_shortif = [
-        'tengigabitethernet'  => 'Te',
-        'ten-gigabitethernet' => 'Te',
-        'tengige'             => 'Te',
-        'gigabitethernet'     => 'Gi',
-        'fastethernet'        => 'Fa',
-        'ethernet'            => 'Et',
-        'serial'              => 'Se',
-        'pos'                 => 'Pos',
-        'port-channel'        => 'Po',
-        'atm'                 => 'Atm',
-        'null'                => 'Null',
-        'loopback'            => 'Lo',
-        'dialer'              => 'Di',
-        'vlan'                => 'Vlan',
-        'tunnel'              => 'Tunnel',
-        'serviceinstance'     => 'SI',
-        'dwdm'                => 'DWDM',
-        'bundle-ether'        => 'BE',
-    ];
-
-    $if = \LibreNMS\Util\Rewrite::normalizeIfName($if);
-    $if = strtolower($if);
-    $if = str_replace(array_keys($rewrite_shortif), array_values($rewrite_shortif), $if);
-
-    return $if;
-}
-
 function rewrite_generic_hardware($hardware)
 {
     $rewrite_GenericHW = [
         ' Computer Corporation' => '',
-        ' Corporation'          => '',
-        ' Inc.'                 => '',
+        ' Corporation' => '',
+        ' Inc.' => '',
     ];
 
     return str_replace(array_keys($rewrite_GenericHW), array_values($rewrite_GenericHW), $hardware);
@@ -138,10 +109,10 @@ function short_hrDeviceDescr($dev)
     $rewrite_hrDevice = [
         'GenuineIntel:' => '',
         'AuthenticAMD:' => '',
-        'Intel(R)'      => '',
-        'CPU'           => '',
-        '(R)'           => '',
-        '  '            => ' ',
+        'Intel(R)' => '',
+        'CPU' => '',
+        '(R)' => '',
+        '  ' => ' ',
     ];
 
     $dev = str_replace(array_keys($rewrite_hrDevice), array_values($rewrite_hrDevice), $dev);
@@ -165,21 +136,7 @@ function short_port_descr($desc)
 
 function rewrite_adslLineType($adslLineType)
 {
-    $adslLineTypes = [
-        'noChannel'          => 'No Channel',
-        'fastOnly'           => 'Fastpath',
-        'interleavedOnly'    => 'Interleaved',
-        'fastOrInterleaved'  => 'Fast/Interleaved',
-        'fastAndInterleaved' => 'Fast+Interleaved',
-    ];
-
-    foreach ($adslLineTypes as $type => $text) {
-        if ($adslLineType == $type) {
-            $adslLineType = $text;
-        }
-    }
-
-    return $adslLineType;
+    return \LibreNMS\Util\Rewrite::dslLineType($adslLineType);
 }
 
 function ipmiSensorName($hardwareId, $sensorIpmi)
@@ -297,7 +254,7 @@ function parse_entity_state($state, $value)
         return $data[$state][$value];
     }
 
-    return ['text'=>'na', 'color'=>'default'];
+    return ['text' => 'na', 'color' => 'default'];
 }
 
 function parse_entity_state_alarm($bits)

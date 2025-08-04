@@ -1,4 +1,5 @@
 <?php
+
 /**
  * alert-rules.inc.php
  *
@@ -39,7 +40,7 @@ $status = 'ok';
 $message = '';
 
 $builder_json = $vars['builder_json'];
-$override_query = $vars['override_query'];
+$override_query = $vars['override_query'] ?? null;
 
 $options = [
     'override_query' => $override_query,
@@ -58,7 +59,9 @@ $mute = isset($_POST['mute']) ? $_POST['mute'] : null;
 $invert = isset($_POST['invert']) ? $_POST['invert'] : null;
 $name = strip_tags($_POST['name']);
 $proc = $_POST['proc'];
+$notes = strip_tags($_POST['notes']);
 $recovery = $vars['recovery'];
+$acknowledgement = $vars['acknowledgement'];
 $invert_map = isset($_POST['invert_map']) ? $_POST['invert_map'] : null;
 $severity = $_POST['severity'];
 
@@ -69,39 +72,28 @@ if (! is_numeric($count)) {
 $delay_sec = convert_delay($delay);
 $interval_sec = convert_delay($interval);
 
-if ($mute == 'on') {
-    $mute = true;
-} else {
-    $mute = false;
-}
-
-if ($invert == 'on') {
-    $invert = true;
-} else {
-    $invert = false;
-}
+$mute = ($mute == 'on');
+$invert = ($invert == 'on');
 
 $recovery = empty($recovery) ? $recovery = false : true;
+$acknowledgement = empty($acknowledgement) ? $acknowledgement = false : true;
 
-if ($invert_map == 'on') {
-    $invert_map = true;
-} else {
-    $invert_map = false;
-}
+$invert_map = ($invert_map == 'on');
 
 $extra = [
-    'mute'     => $mute,
-    'count'    => $count,
-    'delay'    => $delay_sec,
-    'invert'   => $invert,
+    'mute' => $mute,
+    'count' => $count,
+    'delay' => $delay_sec,
+    'invert' => $invert,
     'interval' => $interval_sec,
     'recovery' => $recovery,
-    'options'  => $options,
+    'acknowledgement' => $acknowledgement,
+    'options' => $options,
 ];
 
 $extra_json = json_encode($extra);
 
-if (! is_array($vars['maps']) && $invert_map) {
+if (isset($vars['maps']) && ! is_array($vars['maps']) && $invert_map) {
     exit(json_encode([
         'status' => 'error',
         'message' => 'Invert map is on but no selection in devices, groups and locations match list<br />',
@@ -115,6 +107,7 @@ if (is_numeric($rule_id) && $rule_id > 0) {
             'extra' => $extra_json,
             'name' => $name,
             'proc' => $proc,
+            'notes' => $notes,
             'query' => $query,
             'builder' => $builder_json,
             'invert_map' => $invert_map,
@@ -137,12 +130,12 @@ if (is_numeric($rule_id) && $rule_id > 0) {
         $message = 'No rules provided';
     } else {
         $rule_id = dbInsert([
-            'rule' => '',
             'severity' => $severity,
             'extra' => $extra_json,
             'disabled' => 0,
             'name' => $name,
             'proc' => $proc,
+            'notes' => $notes,
             'query' => $query,
             'builder' => $builder_json,
             'invert_map' => $invert_map,
@@ -166,7 +159,7 @@ if (is_numeric($rule_id) && $rule_id > 0) {
     $devices = [];
     $groups = [];
     $locations = [];
-    foreach ((array) $vars['maps'] as $item) {
+    foreach ((array) ($vars['maps'] ?? []) as $item) {
         if (Str::startsWith($item, 'l')) {
             $locations[] = (int) substr($item, 1);
         } elseif (Str::startsWith($item, 'g')) {
@@ -183,7 +176,7 @@ if (is_numeric($rule_id) && $rule_id > 0) {
     //Update transport groups and transports - can't use dbSyncRelationship
     $transports = [];
     $groups = [];
-    foreach ((array) $vars['transports'] as $item) {
+    foreach ((array) ($vars['transports'] ?? []) as $item) {
         if (Str::startsWith($item, 'g')) {
             $groups[] = (int) substr($item, 1);
         } else {
@@ -234,6 +227,6 @@ if (is_numeric($rule_id) && $rule_id > 0) {
 }
 
 exit(json_encode([
-    'status'       => $status,
-    'message'      => $message,
+    'status' => $status,
+    'message' => $message,
 ]));

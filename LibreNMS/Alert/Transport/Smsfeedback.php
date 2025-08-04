@@ -1,4 +1,5 @@
 <?php
+
 /* Copyright (C) 2015 Daniel Preussker <f0o@librenms.org>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,7 +66,7 @@ class Smsfeedback extends Transport
                     'title' => 'Password',
                     'name' => 'smsfeedback-pass',
                     'descr' => 'smsfeedback Password',
-                    'type' => 'text',
+                    'type' => 'password',
                 ],
                 [
                     'title' => 'Mobiles',
@@ -81,10 +82,10 @@ class Smsfeedback extends Transport
                 ],
             ],
             'validation' => [
-                'smsfeedback-user'    => 'required|string',
-                'smsfeedback-pass'    => 'required|string',
+                'smsfeedback-user' => 'required|string',
+                'smsfeedback-pass' => 'required|string',
                 'smsfeedback-mobiles' => 'required',
-                'smsfeedback-sender'  => 'required|string',
+                'smsfeedback-sender' => 'required|string',
             ],
         ];
     }

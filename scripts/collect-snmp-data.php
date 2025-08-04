@@ -1,11 +1,11 @@
 #!/usr/bin/env php
 <?php
 
+use App\Facades\LibrenmsConfig;
 use Illuminate\Support\Str;
 use LibreNMS\Exceptions\InvalidModuleException;
 use LibreNMS\Util\Debug;
 use LibreNMS\Util\ModuleTestHelper;
-use LibreNMS\Util\Snmpsim;
 
 $install_dir = realpath(__DIR__ . '/..');
 chdir($install_dir);
@@ -23,17 +23,10 @@ $options = getopt(
         'variant:',
         'file:',
         'debug',
-        'snmpsim',
         'full',
         'help',
     ]
 );
-
-if (isset($options['snmpsim'])) {
-    $snmpsim = new Snmpsim();
-    $snmpsim->run();
-    exit;
-}
 
 if (isset($options['v'])) {
     $variant = $options['v'];
@@ -98,6 +91,7 @@ Examples:
 }
 
 Debug::set(isset($options['d']) || isset($options['debug']));
+\Log::setDefaultDriver('console');
 
 if (isset($options['m'])) {
     $modules_input = $options['m'];
@@ -134,7 +128,7 @@ try {
     $full = isset($options['full']);
 
     echo 'Capturing Data: ';
-    \LibreNMS\Util\OS::updateCache(true); // Force update of OS Cache
+    LibrenmsConfig::invalidateAndReload();
     $capture->captureFromDevice($device['device_id'], $prefer_new_snmprec, $full);
     echo "\nVerify these file(s) do not contain any private data before sharing!\n";
 } catch (InvalidModuleException $e) {

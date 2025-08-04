@@ -1,4 +1,5 @@
 <?php
+
 /* Copyright (C) 2015 Daniel Preussker <f0o@librenms.org>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +55,7 @@ class Pushbullet extends Transport
                     'title' => 'Access Token',
                     'name' => 'pushbullet-token',
                     'descr' => 'Pushbullet Access Token',
-                    'type' => 'text',
+                    'type' => 'password',
                 ],
             ],
             'validation' => [

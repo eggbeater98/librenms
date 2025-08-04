@@ -4,11 +4,11 @@ namespace App\Console\Commands;
 
 use App\Actions\Device\ValidateDeviceAndCreate;
 use App\Console\LnmsCommand;
+use App\Facades\LibrenmsConfig;
 use App\Models\Device;
 use App\Models\PollerGroup;
 use Exception;
 use Illuminate\Validation\Rule;
-use LibreNMS\Config;
 use LibreNMS\Enum\PortAssociationMode;
 use LibreNMS\Exceptions\HostExistsException;
 use LibreNMS\Exceptions\HostnameExistsException;
@@ -43,16 +43,16 @@ class DeviceAdd extends LnmsCommand
 
         $this->optionDefaults = [
             'port' => function () {
-                return Config::get('snmp.port', 161);
+                return LibrenmsConfig::get('snmp.port', 161);
             },
             'transport' => function () {
-                return Config::get('snmp.transports.0', 'udp');
+                return LibrenmsConfig::get('snmp.transports.0', 'udp');
             },
             'poller-group' => function () {
-                return Config::get('default_poller_group');
+                return LibrenmsConfig::get('default_poller_group');
             },
             'port-association-mode' => function () {
-                return Config::get('default_port_association_mode');
+                return LibrenmsConfig::get('default_port_association_mode');
             },
 
         ];
@@ -85,7 +85,7 @@ class DeviceAdd extends LnmsCommand
      *
      * @return int
      */
-    public function handle()
+    public function handle(): int
     {
         $this->configureOutputOptions();
 
@@ -105,10 +105,10 @@ class DeviceAdd extends LnmsCommand
             'poller_group' => $this->option('poller-group'),
             'port_association_mode' => PortAssociationMode::getId($this->option('port-association-mode')),
             'community' => $this->option('community'),
-            'authlevel'  => ($auth ? 'auth' : 'noAuth') . (($priv && $auth) ? 'Priv' : 'NoPriv'),
-            'authname'   => $this->option('security-name'),
-            'authpass'   => $this->option('auth-password'),
-            'authalgo'   => $this->option('auth-protocol'),
+            'authlevel' => ($auth ? 'auth' : 'noAuth') . (($priv && $auth) ? 'Priv' : 'NoPriv'),
+            'authname' => $this->option('security-name'),
+            'authpass' => $this->option('auth-password'),
+            'authalgo' => $this->option('auth-protocol'),
             'cryptopass' => $this->option('privacy-password'),
             'cryptoalgo' => $this->option('privacy-protocol'),
         ]);

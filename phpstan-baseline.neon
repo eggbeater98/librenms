@@ -1,16 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^If condition is always false\\.$#"
-			count: 1
-			path: LibreNMS/Authentication/MysqlAuthorizer.php
-
-		-
-			message: "#^Parameter \\#2 \\$password of method LibreNMS\\\\Authentication\\\\MysqlAuthorizer\\:\\:addUser\\(\\) expects string, null given\\.$#"
-			count: 1
-			path: LibreNMS/Authentication/SSOAuthorizer.php
-
-		-
 			message: "#^Property LibreNMS\\\\Data\\\\Store\\\\Rrd\\:\\:\\$async_process \\(LibreNMS\\\\Proc\\) in isset\\(\\) is not nullable\\.$#"
 			count: 1
 			path: LibreNMS/Data/Store/Rrd.php
@@ -56,16 +46,6 @@ parameters:
 			path: LibreNMS/Modules/Mpls.php
 
 		-
-			message: "#^Variable \\$sdps might not be defined\\.$#"
-			count: 1
-			path: LibreNMS/Modules/Mpls.php
-
-		-
-			message: "#^Variable \\$svcs might not be defined\\.$#"
-			count: 2
-			path: LibreNMS/Modules/Mpls.php
-
-		-
 			message: "#^Variable \\$features on left side of \\?\\? is never defined\\.$#"
 			count: 1
 			path: LibreNMS/Modules/Os.php
@@ -96,24 +76,9 @@ parameters:
 			path: LibreNMS/Modules/Ospf.php
 
 		-
-			message: "#^Parameter \\#8 \\$multiplier of class LibreNMS\\\\Device\\\\WirelessSensor constructor expects int, null given\\.$#"
-			count: 2
-			path: LibreNMS/OS/ArrisDsr4410md.php
-
-		-
-			message: "#^Variable \\$sensors in empty\\(\\) always exists and is not falsy\\.$#"
-			count: 1
-			path: LibreNMS/OS/ArubaInstant.php
-
-		-
 			message: "#^Variable \\$multi_get_array on left side of \\?\\? is never defined\\.$#"
 			count: 2
 			path: LibreNMS/OS/Ceraos.php
-
-		-
-			message: "#^Parameter \\#8 \\$multiplier of class LibreNMS\\\\Device\\\\WirelessSensor constructor expects int, null given\\.$#"
-			count: 3
-			path: LibreNMS/OS/HarmonyEnhanced.php
 
 		-
 			message: "#^Parameter \\#16 \\$entPhysicalIndex of class LibreNMS\\\\Device\\\\WirelessSensor constructor expects float\\|int\\|null, string given\\.$#"
@@ -121,49 +86,9 @@ parameters:
 			path: LibreNMS/OS/Ios.php
 
 		-
-			message: "#^If condition is always false\\.$#"
-			count: 1
-			path: LibreNMS/OS/Shared/Cisco.php
-
-		-
 			message: "#^Variable \\$index might not be defined\\.$#"
 			count: 2
 			path: LibreNMS/OS/SmOs.php
-
-		-
-			message: "#^Offset 'sonicCurrentConnCac…' does not exist on string\\.$#"
-			count: 1
-			path: LibreNMS/OS/Sonicwall.php
-
-		-
-			message: "#^Offset 'sonicMaxConnCacheEn…' does not exist on string\\.$#"
-			count: 1
-			path: LibreNMS/OS/Sonicwall.php
-
-		-
-			message: "#^Variable \\$mplsTunnelARHopIndex in isset\\(\\) always exists and is not nullable\\.$#"
-			count: 2
-			path: LibreNMS/OS/Timos.php
-
-		-
-			message: "#^Variable \\$mplsTunnelARHopListIndex in isset\\(\\) always exists and is not nullable\\.$#"
-			count: 2
-			path: LibreNMS/OS/Timos.php
-
-		-
-			message: "#^Variable \\$sdp_oid in isset\\(\\) always exists and is not nullable\\.$#"
-			count: 2
-			path: LibreNMS/OS/Timos.php
-
-		-
-			message: "#^Variable \\$svc_oid in isset\\(\\) always exists and is not nullable\\.$#"
-			count: 2
-			path: LibreNMS/OS/Timos.php
-
-		-
-			message: "#^Property LibreNMS\\\\Proc\\:\\:\\$_pipes is never written, only read\\.$#"
-			count: 1
-			path: LibreNMS/Proc.php
 
 		-
 			message: "#^If condition is always false\\.$#"
@@ -181,16 +106,6 @@ parameters:
 			path: LibreNMS/Util/Graph.php
 
 		-
-			message: "#^Property LibreNMS\\\\Util\\\\Snmpsim\\:\\:\\$proc \\(LibreNMS\\\\Proc\\) in isset\\(\\) is not nullable\\.$#"
-			count: 2
-			path: LibreNMS/Util/Snmpsim.php
-
-		-
-			message: "#^Unreachable statement \\- code above always terminates\\.$#"
-			count: 1
-			path: LibreNMS/Util/Snmpsim.php
-
-		-
 			message: "#^Property App\\\\Console\\\\Commands\\\\InternalHttpRequest\\:\\:\\$app is never read, only written\\.$#"
 			count: 1
 			path: app/Console/Commands/InternalHttpRequest.php
@@ -202,11 +117,6 @@ parameters:
 
 		-
 			message: "#^Ternary operator condition is always false\\.$#"
-			count: 1
-			path: app/Http/Controllers/LegacyController.php
-
-		-
-			message: "#^Variable \\$vars on left side of \\?\\? is never defined\\.$#"
 			count: 1
 			path: app/Http/Controllers/LegacyController.php
 
@@ -236,19 +146,14 @@ parameters:
 			path: app/Http/Controllers/ServiceTemplateController.php
 
 		-
-			message: "#^Offset 'image_title' on null in empty\\(\\) does not exist\\.$#"
+			message: "#^Offset 'image_title' does not exist on null\\.$#"
 			count: 1
 			path: app/Http/Controllers/Widgets/ImageController.php
 
 		-
-			message: "#^PHPDoc type array of property App\\\\Http\\\\Kernel\\:\\:\\$middlewarePriority is not covariant with PHPDoc type array\\<string\\> of overridden property Illuminate\\\\Foundation\\\\Http\\\\Kernel\\:\\:\\$middlewarePriority\\.$#"
+			message: "#^Offset 'image_title' on null in empty\\(\\) does not exist\\.$#"
 			count: 1
-			path: app/Http/Kernel.php
-
-		-
-			message: "#^Cannot access property \\$password on object\\|string\\.$#"
-			count: 1
-			path: app/Http/Requests/UpdateUserRequest.php
+			path: app/Http/Controllers/Widgets/ImageController.php
 
 		-
 			message: "#^Access to an undefined property App\\\\Models\\\\DeviceRelatedModel\\:\\:\\$device_id\\.$#"
@@ -261,34 +166,9 @@ parameters:
 			path: app/Models/UserPref.php
 
 		-
-			message: "#^Result of && is always false\\.$#"
-			count: 1
-			path: app/Providers/CliServiceProvider.php
-
-		-
-			message: "#^Right side of && is always false\\.$#"
-			count: 1
-			path: app/Providers/CliServiceProvider.php
-
-		-
 			message: "#^Variable \\$username on left side of \\?\\? is never defined\\.$#"
 			count: 1
 			path: app/Providers/LegacyUserProvider.php
-
-		-
-			message: "#^Property App\\\\View\\\\SimpleTemplate\\:\\:\\$callback \\(callable\\) on left side of \\?\\? is not nullable\\.$#"
-			count: 1
-			path: app/View/SimpleTemplate.php
-
-		-
-			message: "#^Parameter \\#4 \\$transport of function addHost expects string, int given\\.$#"
-			count: 1
-			path: tests/AddHostTest.php
-
-		-
-			message: "#^Parameter \\#5 \\$poller_group of function addHost expects string, int given\\.$#"
-			count: 4
-			path: tests/AddHostTest.php
 
 		-
 			message: "#^Parameter \\#1 \\$attr of method LibreNMS\\\\Authentication\\\\SSOAuthorizer\\:\\:authSSOGetAttr\\(\\) expects string, int given\\.$#"
@@ -304,11 +184,6 @@ parameters:
 			message: "#^Parameter \\#2 \\$default of function set_null expects null, int given\\.$#"
 			count: 2
 			path: tests/CommonFunctionsTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$os of static method LibreNMS\\\\Config\\:\\:getOsSetting\\(\\) expects string, null given\\.$#"
-			count: 1
-			path: tests/ConfigTest.php
 
 		-
 			message: "#^Parameter \\#1 \\$new_location of method App\\\\Models\\\\Device\\:\\:setLocation\\(\\) expects App\\\\Models\\\\Location\\|string, null given\\.$#"

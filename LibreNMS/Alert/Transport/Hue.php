@@ -1,4 +1,5 @@
 <?php
+
 /* Copyright (C) 2018 Paul Heinrichs <pdheinrichs@gmail.com>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,21 +63,21 @@ class Hue extends Transport
     public static function configTemplate(): array
     {
         return [
-            'config'=>[
+            'config' => [
                 [
-                    'title'=> 'Host',
+                    'title' => 'Host',
                     'name' => 'hue-host',
                     'descr' => 'Hue Host',
                     'type' => 'text',
                 ],
                 [
-                    'title'=> 'Hue User',
+                    'title' => 'Hue User',
                     'name' => 'hue-user',
                     'descr' => 'Phillips Hue Host',
                     'type' => 'text',
                 ],
                 [
-                    'title'=> 'Duration',
+                    'title' => 'Duration',
                     'name' => 'hue-duration',
                     'descr' => 'Phillips Hue Duration',
                     'type' => 'select',

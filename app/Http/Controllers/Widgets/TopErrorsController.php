@@ -1,4 +1,5 @@
 <?php
+
 /**
  * TopErrorsController.php
  *
@@ -34,7 +35,7 @@ use Illuminate\View\View;
 
 class TopErrorsController extends WidgetController
 {
-    protected $title = 'Top Errors';
+    protected string $name = 'top-errors';
     protected $defaults = [
         'interface_count' => 5,
         'time_interval' => 15,
@@ -43,16 +44,12 @@ class TopErrorsController extends WidgetController
         'port_group' => null,
     ];
 
-    /**
-     * @param  Request  $request
-     * @return View
-     */
-    public function getView(Request $request)
+    public function getView(Request $request): string|View
     {
         $data = $this->getSettings();
 
         $query = Port::hasAccess($request->user())->with(['device' => function ($query) {
-            $query->select('device_id', 'hostname', 'sysName', 'status', 'os');
+            $query->select('device_id', 'hostname', 'sysName', 'display', 'status', 'os');
         }])
             ->isValid()
             ->select(['port_id', 'device_id', 'ifName', 'ifDescr', 'ifAlias'])
@@ -82,10 +79,5 @@ class TopErrorsController extends WidgetController
         $data['ports'] = $query->get();
 
         return view('widgets.top-errors', $data);
-    }
-
-    public function getSettingsView(Request $request)
-    {
-        return view('widgets.settings.top-errors', $this->getSettings(true));
     }
 }

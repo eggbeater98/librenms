@@ -1,4 +1,5 @@
 <?php
+
 /**
  * LINE Notify Transport
  */
@@ -39,7 +40,7 @@ class Linenotify extends Transport
                     'title' => 'Token',
                     'name' => 'line-notify-access-token',
                     'descr' => 'LINE Notify Token',
-                    'type' => 'text',
+                    'type' => 'password',
                 ],
             ],
             'validation' => [

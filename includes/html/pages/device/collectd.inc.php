@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright (C) 2099  Bruno Prémont <bonbons AT linux-vserver.org>
  *
@@ -48,9 +49,9 @@ function dhtml_response_list(&$items, $method)
 print_optionbar_start();
 
 $link_array = [
-    'page'   => 'device',
+    'page' => 'device',
     'device' => $device['device_id'],
-    'tab'    => 'collectd',
+    'tab' => 'collectd',
 ];
 
 $plugins = collectd_list_plugins($device['hostname']);
@@ -92,9 +93,9 @@ foreach ($pinsts as &$instance) {
         foreach ($typeinstances as &$tinst) {
             $i++;
             if (! is_integer($i / 2)) {
-                $row_colour = \LibreNMS\Config::get('list_colour.even');
+                $row_colour = \App\Facades\LibrenmsConfig::get('list_colour.even');
             } else {
-                $row_colour = \LibreNMS\Config::get('list_colour.odd');
+                $row_colour = \App\Facades\LibrenmsConfig::get('list_colour.odd');
             }
 
             echo '<div style="background-color: ' . $row_colour . ';">';

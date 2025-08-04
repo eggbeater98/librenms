@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CommonFunctionsTest.php
  *
@@ -25,10 +26,11 @@
 
 namespace LibreNMS\Tests;
 
+use App\Facades\LibrenmsConfig;
 use Illuminate\Support\Str;
-use LibreNMS\Config;
 use LibreNMS\Enum\PortAssociationMode;
 use LibreNMS\Util\Clean;
+use LibreNMS\Util\StringHelpers;
 use LibreNMS\Util\Validate;
 
 class CommonFunctionsTest extends TestCase
@@ -40,14 +42,14 @@ class CommonFunctionsTest extends TestCase
         $this->assertTrue(Str::contains($data, 'Just'));
         $this->assertFalse(Str::contains($data, 'just'));
 
-        $this->assertTrue(str_i_contains($data, 'juSt'));
-        $this->assertFalse(str_i_contains($data, 'nope'));
+        $this->assertTrue(Str::contains($data, 'juSt', ignoreCase: true));
+        $this->assertFalse(Str::contains($data, 'nope', ignoreCase: true));
 
         $this->assertTrue(Str::contains($data, ['not', 'this', 'This']));
         $this->assertFalse(Str::contains($data, ['not', 'this']));
 
-        $this->assertTrue(str_i_contains($data, ['not', 'thIs']));
-        $this->assertFalse(str_i_contains($data, ['not', 'anything']));
+        $this->assertTrue(Str::contains($data, ['not', 'thIs'], ignoreCase: true));
+        $this->assertFalse(Str::contains($data, ['not', 'anything'], ignoreCase: true));
     }
 
     public function testStartsWith(): void
@@ -93,10 +95,14 @@ class CommonFunctionsTest extends TestCase
     {
         $this->assertEquals('&lt;html&gt;string&lt;/html&gt;', Clean::html('<html>string</html>', []));
         $this->assertEquals('&lt;script&gt;alert("test")&lt;/script&gt;', Clean::html('<script>alert("test")</script>', []));
+        $this->assertEquals("Is your name O'reilly?", Clean::html("Is your name O\'reilly?", []));
+        $this->assertEquals("Is your name O'reilly?", Clean::html("Is your name O\'reilly?"));
+        $this->assertEquals('', Clean::html(''));
+        $this->assertEquals('', Clean::html(null));
 
         $tmp_config = [
-            'HTML.Allowed'    => 'b,iframe,i,ul,li,h1,h2,h3,h4,br,p',
-            'HTML.Trusted'    => true,
+            'HTML.Allowed' => 'b,iframe,i,ul,li,h1,h2,h3,h4,br,p',
+            'HTML.Trusted' => true,
             'HTML.SafeIframe' => true,
         ];
 
@@ -106,11 +112,11 @@ class CommonFunctionsTest extends TestCase
 
     public function testStringToClass(): void
     {
-        $this->assertSame('LibreNMS\OS\Os', str_to_class('OS', 'LibreNMS\\OS\\'));
-        $this->assertSame('SpacesName', str_to_class('spaces name'));
-        $this->assertSame('DashName', str_to_class('dash-name'));
-        $this->assertSame('UnderscoreName', str_to_class('underscore_name'));
-        $this->assertSame('LibreNMS\\AllOfThemName', str_to_class('all OF-thEm_NaMe', 'LibreNMS\\'));
+        $this->assertSame('LibreNMS\OS\Os', StringHelpers::toClass('OS', 'LibreNMS\\OS\\'));
+        $this->assertSame('SpacesName', StringHelpers::toClass('spaces name', null));
+        $this->assertSame('DashName', StringHelpers::toClass('dash-name', null));
+        $this->assertSame('UnderscoreName', StringHelpers::toClass('underscore_name', null));
+        $this->assertSame('LibreNMS\\AllOfThemName', StringHelpers::toClass('all OF-thEm_NaMe', 'LibreNMS\\'));
     }
 
     public function testIsValidHostname(): void
@@ -126,7 +132,7 @@ class CommonFunctionsTest extends TestCase
         $this->assertTrue(Validate::hostname('www.averylargedomainthatdoesnotreallyexist.com'), 'www.averylargedomainthatdoesnotreallyexist.com');
         $this->assertTrue(Validate::hostname('cont-ains.h-yph-en-s.com'), 'cont-ains.h-yph-en-s.com');
         $this->assertTrue(Validate::hostname('cisco-3750x'), 'cisco-3750x');
-        $this->assertFalse(Validate::hostname('cisco_3750x'), 'cisco_3750x');
+        $this->assertTrue(Validate::hostname('cisco_3750x'), 'cisco_3750x');
         $this->assertFalse(Validate::hostname('goo gle.com'), 'goo gle.com');
         $this->assertFalse(Validate::hostname('google..com'), 'google..com');
         $this->assertFalse(Validate::hostname('google.com '), 'google.com ');
@@ -192,7 +198,7 @@ class CommonFunctionsTest extends TestCase
         ];
 
         // default {{ $hostname }}
-        Config::set('device_display_default', null);
+        LibrenmsConfig::set('device_display_default', null);
         $this->assertEquals('test.librenms.org', format_hostname($device_dns));
         $this->assertEquals('Not DNS', format_hostname($invalid_dns));
         $this->assertEquals('192.168.1.2', format_hostname($device_ip));
@@ -200,7 +206,7 @@ class CommonFunctionsTest extends TestCase
         $this->assertEquals('Custom Display (test.librenms.org sysName)', format_hostname($custom_display));
 
         // ip to sysname
-        Config::set('device_display_default', '{{ $sysName_fallback }}');
+        LibrenmsConfig::set('device_display_default', '{{ $sysName_fallback }}');
         $this->assertEquals('test.librenms.org', format_hostname($device_dns));
         $this->assertEquals('Not DNS', format_hostname($invalid_dns));
         $this->assertEquals('Testing IP', format_hostname($device_ip));
@@ -208,7 +214,7 @@ class CommonFunctionsTest extends TestCase
         $this->assertEquals('Custom Display (test.librenms.org sysName)', format_hostname($custom_display));
 
         // sysname
-        Config::set('device_display_default', '{{ $sysName }}');
+        LibrenmsConfig::set('device_display_default', '{{ $sysName }}');
         $this->assertEquals('Testing DNS', format_hostname($device_dns));
         $this->assertEquals('Testing Invalid DNS', format_hostname($invalid_dns));
         $this->assertEquals('Testing IP', format_hostname($device_ip));

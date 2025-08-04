@@ -1,5 +1,6 @@
 #!/usr/bin/php -q
 <?php
+
 /*
  ex: set tabstop=4 shiftwidth=4 autoindent:
  +-------------------------------------------------------------------------+
@@ -816,6 +817,7 @@ function removeComments(&$output)
                 }
             }
         }
+
         /* transfer the new array back to the original array */
         return $new_array;
     }

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * ConnectivityHelper.php
  *
@@ -25,20 +26,21 @@
 
 namespace LibreNMS\Polling;
 
+use App\Facades\LibrenmsConfig;
 use App\Models\Device;
 use App\Models\DeviceOutage;
 use App\Models\Eventlog;
-use LibreNMS\Config;
 use LibreNMS\Data\Source\Fping;
 use LibreNMS\Data\Source\FpingResponse;
-use LibreNMS\RRD\RrdDefinition;
+use LibreNMS\Enum\MaintenanceStatus;
+use LibreNMS\Enum\Severity;
 use SnmpQuery;
 use Symfony\Component\Process\Process;
 
 class ConnectivityHelper
 {
     /**
-     * @var \App\Models\Device
+     * @var Device
      */
     private $device;
     /**
@@ -96,7 +98,7 @@ class ConnectivityHelper
 
         if ($this->saveMetrics) {
             if ($this->canPing()) {
-                $this->savePingStats($ping_response);
+                $ping_response->saveStats($this->device);
             }
             $this->updateAvailability($previous, $this->device->status);
 
@@ -112,20 +114,14 @@ class ConnectivityHelper
     public function isPingable(): FpingResponse
     {
         if (! $this->canPing()) {
-            return FpingResponse::artificialUp();
+            return FpingResponse::artificialUp($this->target);
         }
 
-        $status = app()->make(Fping::class)->ping(
-            $this->target,
-            Config::get('fping_options.count', 3),
-            Config::get('fping_options.interval', 500),
-            Config::get('fping_options.timeout', 500),
-            $this->ipFamily()
-        );
+        $status = app()->make(Fping::class)->ping($this->target, $this->ipFamily());
 
         if ($status->duplicates > 0) {
-            Eventlog::log('Duplicate ICMP response detected! This could indicate a network issue.', $this->device, 'icmp', 4);
-            $status->exit_code = 0;   // when duplicate is detected fping returns 1. The device is up, but there is another issue. Clue admins in with above event.
+            Eventlog::log('Duplicate ICMP response detected! This could indicate a network issue.', $this->device, 'icmp', Severity::Warning);
+            $status->ignoreFailure(); // when duplicate is detected fping returns 1. The device is up, but there is another issue. Clue admins in with above event.
         }
 
         return $status;
@@ -140,7 +136,7 @@ class ConnectivityHelper
 
     public function traceroute(): array
     {
-        $command = [Config::get('traceroute', 'traceroute'), '-q', '1', '-w', '1', '-I', $this->target];
+        $command = [LibrenmsConfig::get('traceroute', 'traceroute'), '-q', '1', '-w', '1', '-I', $this->target];
         if ($this->ipFamily() == 'ipv6') {
             $command[] = '-6';
         }
@@ -162,7 +158,7 @@ class ConnectivityHelper
 
     public function canPing(): bool
     {
-        return Config::get('icmp_check') && ! ($this->device->exists && $this->device->getAttrib('override_icmp_disable') === 'true');
+        return LibrenmsConfig::get('icmp_check') && ! ($this->device->exists && $this->device->getAttrib('override_icmp_disable') === 'true');
     }
 
     public function ipFamily(): string
@@ -176,12 +172,14 @@ class ConnectivityHelper
 
     private function updateAvailability(bool $previous, bool $status): void
     {
-        if (Config::get('graphing.availability_consider_maintenance') && $this->device->isUnderMaintenance()) {
+        // skip update if we are considering maintenance and skipping alerts
+        if (LibrenmsConfig::get('graphing.availability_consider_maintenance')
+            && $this->device->getMaintenanceStatus() == MaintenanceStatus::SKIP_ALERTS) {
             return;
         }
 
         // check for open outage
-        $open_outage = $this->device->outages()->whereNull('up_again')->orderBy('going_down', 'desc')->first();
+        $open_outage = $this->device->getCurrentOutage();
 
         if ($status) {
             if ($open_outage) {
@@ -193,26 +191,5 @@ class ConnectivityHelper
             // open new outage
             $this->device->outages()->save(new DeviceOutage(['going_down' => time()]));
         }
-    }
-
-    /**
-     * Save the ping stats to db and rrd, also updates last_ping_timetaken and saves the device model.
-     */
-    private function savePingStats(FpingResponse $ping_response): void
-    {
-        $perf = $ping_response->toModel();
-        $perf->debug = ['poller_name'=>Config::get('distributed_poller_name')];
-        if (! $ping_response->success() && Config::get('debug.run_trace', false)) {
-            $perf->debug = array_merge($perf->debug, $this->traceroute());
-        }
-        $this->device->perf()->save($perf);
-        $this->device->last_ping_timetaken = $ping_response->avg_latency ?: $this->device->last_ping_timetaken;
-        $this->device->save();
-
-        app('Datastore')->put($this->device->toArray(), 'ping-perf', [
-            'rrd_def' => RrdDefinition::make()->addDataset('ping', 'GAUGE', 0, 65535),
-        ], [
-            'ping' => $ping_response->avg_latency,
-        ]);
     }
 }

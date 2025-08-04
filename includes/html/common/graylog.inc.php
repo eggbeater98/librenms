@@ -1,4 +1,5 @@
 <?php
+
 /*
  * LibreNMS
  *
@@ -29,6 +30,7 @@ $tmp_output = '
         <thead>
             <tr>
             <th data-column-id="severity" data-sortable="false"></th>
+            <th data-column-id="origin">Origin</th>
             <th data-column-id="timestamp" data-formatter="browserTime">Timestamp</th>
             <th data-column-id="level">Level</th>
             <th data-column-id="source">Source</th>
@@ -73,7 +75,7 @@ if (! empty($filter_device)) {
 ';
 }
 
-if (\LibreNMS\Config::has('graylog.timezone')) {
+if (\App\Facades\LibrenmsConfig::has('graylog.timezone')) {
     $timezone = 'row.timestamp;';
 } else {
     $timezone = 'moment.parseZone(row.timestamp).local().format("YYYY-MM-DD HH:MM:SS");';

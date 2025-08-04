@@ -72,7 +72,7 @@ $fields = [
     'senders' => $senders,
     'sendinghd' => $sendinghd,
     'recipients' => $recipients,
-    'recipienthd'=> $recipienthd,
+    'recipienthd' => $recipienthd,
     'deferralcr' => $deferralcr,
     'deferralhid' => $deferralhid,
     'chr' => $chr,
@@ -92,5 +92,5 @@ $fields = [
 ];
 
 $tags = ['name' => $name, 'app_id' => $app->app_id, 'rrd_def' => $rrd_def, 'rrd_name' => $rrd_name];
-data_update($device, 'app', $tags, $fields);
+app('Datastore')->put($device, 'app', $tags, $fields);
 update_application($app, $mailq, $fields);

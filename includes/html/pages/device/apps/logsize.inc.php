@@ -1,10 +1,10 @@
 <?php
 
 $link_array = [
-    'page'   => 'device',
+    'page' => 'device',
     'device' => $device['device_id'],
-    'tab'    => 'apps',
-    'app'    => 'logsize',
+    'tab' => 'apps',
+    'app' => 'logsize',
 ];
 
 $no_minus_d = $app->data['no_minus_d'] ?? false;
@@ -39,7 +39,7 @@ if (isset($vars['log_set']) && isset($sets[$vars['log_set']])) {
             ? '<span class="pagemenu-selected">' . $log_file . '</span>'
             : $log_file;
 
-        echo generate_link($label, $link_array, ['log_set' => $vars['log_set'], 'log_file'=>$log_file]) . "\n";
+        echo generate_link($label, $link_array, ['log_set' => $vars['log_set'], 'log_file' => $log_file]) . "\n";
 
         if ($index < (count($log_files) - 1)) {
             echo ', ';
@@ -81,7 +81,7 @@ foreach ($graphs as $key => $text) {
     $graph_type = $key;
     $graph_array['height'] = '100';
     $graph_array['width'] = '215';
-    $graph_array['to'] = \LibreNMS\Config::get('time.now');
+    $graph_array['to'] = \App\Facades\LibrenmsConfig::get('time.now');
     $graph_array['id'] = $app['app_id'];
     $graph_array['type'] = 'application_' . $key;
 

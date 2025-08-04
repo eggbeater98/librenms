@@ -1,4 +1,5 @@
 <?php
+
 /*
  * PortSearchController.php
  *
@@ -52,7 +53,7 @@ class PortSearchController extends SearchController
     }
 
     /**
-     * @param  \App\Models\Port  $port
+     * @param  Port  $port
      * @return array
      */
     public function formatItem($port): array
@@ -65,12 +66,12 @@ class PortSearchController extends SearchController
         }
 
         return [
-            'url'         => Url::portUrl($port),
-            'name'        => $label,
+            'url' => Url::portUrl($port),
+            'name' => $label,
             'description' => $description,
-            'colours'     => Color::forPortStatus($port),
-            'hostname'    => $port->device->displayName(),
-            'port_id'     => $port->port_id,
+            'colours' => Color::forPortStatus($port),
+            'hostname' => $port->device?->displayName(),
+            'port_id' => $port->port_id,
         ];
     }
 }
